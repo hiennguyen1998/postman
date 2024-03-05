@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .container {
+        width: 80%;
+        margin: auto;
+        font-size: 12px;
+      }
+      .header {
+        display: flex;
+        flex-direction: row;
+      }
+      #method {
+        width: 10%;
+      }
+      input {
+        font-size: 10px;
+      }
+      select {
+        color: #000;
+        background-color: #e5e8eb;
+        font-size: 10px;
+        border-radius: 3px;
+      }
+      #inputUrl {
+        width: 70%;
+        margin-left: 5px;
+      }
+      #submit {
+        color: #fff;
+        background-color: #2274c1;
+        width: 65px;
+        margin-left: 5px;
+        outline: none;
+        font-size: 10px;
+        border-radius: 3px;
+        border: 1px solid #2274c1;
+      }
+      #submit:hover {
+        background-color: #84b9eb;
+        border: 1px solid #84b9eb;
+        cursor: pointer;
+      }
+      #submit.sending {
+        background-color: #84b9eb;
+        border: 1px solid #84b9eb;
+      }
+      #request .theard,
+      #request .body {
+        display: flex;
+        flex-direction: row;
+      }
+      textarea {
+        height: 80%;
+        width: 97%;
+        font-size: 8px;
+        border: 1px solid #e5e8eb;
+      }
+      #configure {
+        margin-top: 5px;
+        padding: 5px;
+        border: 1px solid #e5e8eb;
+      }
+      #configure .setting-container {
+        display: flex;
+        flex-direction: row;
+      }
+      #configure .setting-container .item {
+        flex: 1;
+      }
+      #configure .setting-container .item label {
+        display: block;
+      }
+      #response {
+        height: 80%;
+        overflow: auto;
+        border: 1px solid #e5e8eb;
+        padding: 2px;
+        font-size: 8px;
+      }
+      #error {
+        display: none;
+        color: red;
+        font-size: 12px;
+      }
+      #error.show {
+        display: block;
+      }
+      .main-container {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        height: 70vh;
+      }
+      .main-container .request,
+      .main-container .response {
+        flex: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <select name="method" id="method">
+          <option value="GET">GET</option>
+          <option value="POST">POST</option>
+          <option value="DELETE">DELETE</option>
+        </select>
+        <input type="text" id="inputUrl" placeholder="Enter your URL" />
+        <button id="submit">Send</button>
+      </div>
+      <div id="configure">
+        <h3>Configure/Setting</h3>
+        <div class="setting-container">
+          <div class="item">
+            <label for="anchonErrorCode">Anchon Error Code</label>
+            <select name="anchonErrorCode" id="anchonErrorCode">
+              <option value="200">200</option>
+              <option value="400">400</option>
+              <option value="500">500</option>
+            </select>
+          </div>
+          <div class="item">
+            <label for="requestErrorCode">Request Error Code</label>
+            <select name="requestErrorCode" id="requestErrorCode">
+              <option value="200">200</option>
+              <option value="400">400</option>
+              <option value="500">500</option>
+            </select>
+          </div>
+          <div class="item">
+            <label for="requestErrorCode">Action</label>
+            <select name="action" id="action">
+              <option value="GET">GET</option>
+              <option value="GET">POST</option>
+              <option value="GET">DELETE</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="error"></div>
+      <div class="main-container">
+        <div class="request">
+          <h3>Request</h3>
+          <textarea name="request" id="request"></textarea>
+        </div>
+        <div class="response">
+          <h3>Response</h3>
+          <pre id="response"></pre>
+        </div>
+      </div>
+    </div>
+    <script>
+      const methodEle = document.getElementById("method");
+      const urlEle = document.getElementById("inputUrl");
+      const errorEle = document.getElementById("error");
+      const btnSubmit = document.getElementById("submit");
+      const requestSection = document.getElementById("request");
+      const responseSection = document.getElementById("response");
+      btnSubmit.addEventListener("click", (event) => {
+        const url = urlEle.value;
+        const method = methodEle.value;
+        const option = { method };
+        if (!url) {
+          errorEle.innerText = "Request URL is empty";
+          errorEle.classList.add("show");
+          return;
+        } else {
+          errorEle.innerText = "";
+          errorEle.classList.remove("show");
+          btnSubmit.innerText = "Sending";
+          btnSubmit.disable = true;
+          btnSubmit.classList.add("sending");
+        }
+        fetch(url, option)
+          .then((res) => {
+            if (res.ok) return res.json();
+            return Promise.reject(res);
+          })
+          .then((data) => {
+            if (data) {
+              responseSection.innerHTML = JSON.stringify(data, undefined, 2);
+            }
+          })
+          .catch((error) => {
+            console.log("error: ", error);
+            errorEle.innerText = `There are some error, error code is: ${error.status}`;
+            errorEle.classList.add("show");
+          })
+          .finally(() => {
+            btnSubmit.disable = false;
+            btnSubmit.classList.remove("sending");
+            btnSubmit.innerText = "Send";
+          });
+      });
+    </script>
+  </body>
+</html>
