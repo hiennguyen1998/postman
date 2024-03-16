@@ -7,7 +7,7 @@
     <title>Document</title>
     <style>
       .container {
-        width: 80%;
+        width: 95%;
         margin: auto;
         font-size: 12px;
       }
@@ -60,6 +60,7 @@
         width: 97%;
         font-size: 8px;
         border: 1px solid #e5e8eb;
+        white-space: pre-line;
       }
       #configure {
         margin-top: 5px;
@@ -73,8 +74,20 @@
       #configure .setting-container .item {
         flex: 1;
       }
+      #configure .setting-container .item div.error {
+        color: red;
+      }
+      #configure .setting-container .item div.success {
+        color: #33bd58;
+      }
       #configure .setting-container .item label {
         display: block;
+      }
+      #configure .setting-container .item label span.error {
+        color: red;
+      }
+      #configure .setting-container .item label span.success {
+        color: #33bd58;
       }
       #response {
         height: 80%;
@@ -115,31 +128,27 @@
         <button id="submit">Send</button>
       </div>
       <div id="configure">
-        <h3>Configure/Setting</h3>
+        <h3>Response Description</h3>
         <div class="setting-container">
           <div class="item">
-            <label for="anchonErrorCode">Anchon Error Code</label>
-            <select name="anchonErrorCode" id="anchonErrorCode">
+            <label for="responseErrorCode"
+              >Response Error Code: <span id="responseErrorCode"></span
+            ></label>
+            <div id="resErrorDesc"></div>
+          </div>
+          <div class="item">
+            <!-- <label for="requestErrorCode">Request Error Code</label>
+                <select name="requestErrorCode" id="requestErrorCode">
               <option value="200">200</option>
               <option value="400">400</option>
               <option value="500">500</option>
-            </select>
+            </select> -->
           </div>
           <div class="item">
-            <label for="requestErrorCode">Request Error Code</label>
-            <select name="requestErrorCode" id="requestErrorCode">
-              <option value="200">200</option>
-              <option value="400">400</option>
-              <option value="500">500</option>
-            </select>
-          </div>
-          <div class="item">
-            <label for="requestErrorCode">Action</label>
-            <select name="action" id="action">
-              <option value="GET">GET</option>
-              <option value="GET">POST</option>
-              <option value="GET">DELETE</option>
-            </select>
+            <label for="responseAction"
+              >Response Action Code: <span id="responseAction"></span
+            ></label>
+            <div id="resActionDesc"></div>
           </div>
         </div>
       </div>
@@ -162,36 +171,125 @@
       const btnSubmit = document.getElementById("submit");
       const requestSection = document.getElementById("request");
       const responseSection = document.getElementById("response");
+      const responseErrorCode = document.getElementById("responseErrorCode");
+      const responseErrorDesc = document.getElementById("resErrorDesc");
+      const responseActionCode = document.getElementById("responseAction");
+      const responseActionDesc = document.getElementById("resActionDesc");
+      const ERROR_CODE = {
+        0: "Success",
+        "-1": "Unknown Error",
+        "-4": "Account Frozen",
+        "-5": "Account Not Found",
+        "-6": "API Authentication failed",
+        "-8": "Transaction Not Found",
+      };
+      const ACTION_CODE = {
+        0: "Success",
+        "-1": "Unknown Error",
+      };
+      function isJsonString(str) {
+        try {
+          JSON.parse(str);
+        } catch (e) {
+          return false;
+        }
+        return true;
+      }
+
+      function hasError(url, requestData, method) {
+        let errorText = "";
+        if (!url) {
+          errorText = "Request URL is empty";
+        } else if (method !== "GET") {
+          if (!requestData) {
+            errorText = "Request JSON data is empty";
+          } else if (!isJsonString(requestData)) {
+            errorText = "Request data must be JSON";
+          }
+        }
+        if (errorText) {
+          errorEle.innerText = errorText;
+          errorEle.classList.add("show");
+          return true;
+        }
+        return false;
+      }
+
+      function handleSuccess(data) {
+        if (data) {
+          responseSection.innerHTML = JSON.stringify(data, undefined, 2);
+          responseErrorCode.innerText = data.ErrorCode;
+          responseErrorDesc.innerText = ERROR_CODE[data.ErrorCode] || "";
+          responseErrorCode.classList.add(
+            parseInt(data.ErrorCode) > -1 ? "success" : "error"
+          );
+          responseErrorDesc.classList.add(
+            parseInt(data.ErrorCode) > -1 ? "success" : "error"
+          );
+          if (data.Result && data.Result.Action) {
+            responseActionCode.innerText = data.Result.Action.ResponseCode;
+            responseActionDesc.innerText =
+              ACTION_CODE[data.Result.Action.ResponseCode] || "";
+            responseActionCode.classList.add(
+              parseInt(data.Result.Action.ResponseCode) > -1
+                ? "success"
+                : "error"
+            );
+            responseActionDesc.classList.add(
+              parseInt(data.Result.Action.ResponseCode) > -1
+                ? "success"
+                : "error"
+            );
+          }
+        }
+      }
+
+      function handleError(error) {
+        console.log("error: ", error);
+        errorEle.innerText = `There are some error, error code is: ${error.status}`;
+        errorEle.classList.add("show");
+      }
+
       btnSubmit.addEventListener("click", (event) => {
         const url = urlEle.value;
         const method = methodEle.value;
-        const option = { method };
-        if (!url) {
-          errorEle.innerText = "Request URL is empty";
-          errorEle.classList.add("show");
-          return;
-        } else {
-          errorEle.innerText = "";
-          errorEle.classList.remove("show");
-          btnSubmit.innerText = "Sending";
-          btnSubmit.disable = true;
-          btnSubmit.classList.add("sending");
-        }
+        const requestData = requestSection.value;
+        const myJSONString = JSON.stringify(requestSection.value);
+        const myEscapedJSONString = myJSONString
+          .replace(/\\n/g, "\\n")
+          .replace(/\\'/g, "\\'")
+          .replace(/\\"/g, '\\"')
+          .replace(/\\&/g, "\\&")
+          .replace(/\\r/g, "\\r")
+          .replace(/\\t/g, "\\t")
+          .replace(/\\b/g, "\\b")
+          .replace(/\\f/g, "\\f");
+        const header = { "Content-Type": "application/json" };
+        let option = { method, header };
+        if (hasError(url, requestData, method)) return;
+        errorEle.innerText = "";
+        errorEle.classList.remove("show");
+        btnSubmit.innerText = "Sending";
+        btnSubmit.disable = true;
+        btnSubmit.classList.add("sending");
+        const bodyRequest =
+          method !== "GET"
+            ? {
+                ...JSON.parse(requestData),
+                Timestamp: new Date().toISOString().split(".")[0],
+              }
+            : null;
+        option = {
+          ...option,
+          body: bodyRequest ? JSON.stringify(bodyRequest) : null,
+        };
         fetch(url, option)
           .then((res) => {
             if (res.ok) return res.json();
             return Promise.reject(res);
           })
-          .then((data) => {
-            if (data) {
-              responseSection.innerHTML = JSON.stringify(data, undefined, 2);
-            }
-          })
-          .catch((error) => {
-            console.log("error: ", error);
-            errorEle.innerText = `There are some error, error code is: ${error.status}`;
-            errorEle.classList.add("show");
-          })
+          .then(handleSuccess)
+          .catch(handleError)
           .finally(() => {
             btnSubmit.disable = false;
             btnSubmit.classList.remove("sending");
