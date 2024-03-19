@@ -259,8 +259,8 @@
           .replace(/\\t/g, "\\t")
           .replace(/\\b/g, "\\b")
           .replace(/\\f/g, "\\f");
-        const header = { "Content-Type": "application/json" };
-        let option = { method, header };
+        const headers = { "Content-Type": "application/json" };
+        let option = { method, headers };
         if (hasError(url, requestData, method)) return;
         errorEle.innerText = "";
         errorEle.classList.remove("show");
