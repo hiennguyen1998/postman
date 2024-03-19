@@ -9,35 +9,32 @@
       .container {
         width: 95%;
         margin: auto;
-        font-size: 12px;
       }
       .header {
         display: flex;
         flex-direction: row;
       }
-      #method {
-        width: 10%;
-      }
       input {
-        font-size: 10px;
+        font-size: 12px;
       }
       select {
         color: #000;
         background-color: #e5e8eb;
-        font-size: 10px;
+        font-size: 12px;
         border-radius: 3px;
       }
       #inputUrl {
-        width: 70%;
+        width: 90%;
         margin-left: 5px;
       }
       #submit {
         color: #fff;
         background-color: #2274c1;
-        width: 65px;
+        /* width: 65px; */
         margin-left: 5px;
+        padding: 0px 5px;
         outline: none;
-        font-size: 10px;
+        font-size: 12px;
         border-radius: 3px;
         border: 1px solid #2274c1;
       }
@@ -56,11 +53,14 @@
         flex-direction: row;
       }
       textarea {
-        height: 80%;
+        height: 100%;
         width: 97%;
-        font-size: 8px;
+        font-size: 10px;
         border: 1px solid #e5e8eb;
         white-space: pre-line;
+      }
+      label {
+        font-size: 12px;
       }
       #configure {
         margin-top: 5px;
@@ -89,12 +89,15 @@
       #configure .setting-container .item label span.success {
         color: #33bd58;
       }
+      h4 {
+        margin: 10px 0px;
+      }
       #response {
-        height: 80%;
+        height: 100%;
         overflow: auto;
         border: 1px solid #e5e8eb;
         padding: 2px;
-        font-size: 8px;
+        font-size: 10px;
       }
       #error {
         display: none;
@@ -128,21 +131,13 @@
         <button id="submit">Send</button>
       </div>
       <div id="configure">
-        <h3>Response Description</h3>
+        <h4>Response Description</h4>
         <div class="setting-container">
           <div class="item">
             <label for="responseErrorCode"
               >Response Error Code: <span id="responseErrorCode"></span
             ></label>
             <div id="resErrorDesc"></div>
-          </div>
-          <div class="item">
-            <!-- <label for="requestErrorCode">Request Error Code</label>
-                <select name="requestErrorCode" id="requestErrorCode">
-              <option value="200">200</option>
-              <option value="400">400</option>
-              <option value="500">500</option>
-            </select> -->
           </div>
           <div class="item">
             <label for="responseAction"
@@ -155,11 +150,11 @@
       <div id="error"></div>
       <div class="main-container">
         <div class="request">
-          <h3>Request</h3>
+          <h4>Request</h4>
           <textarea name="request" id="request"></textarea>
         </div>
         <div class="response">
-          <h3>Response</h3>
+          <h4>Response</h4>
           <pre id="response"></pre>
         </div>
       </div>
